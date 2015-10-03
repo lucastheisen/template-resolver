@@ -4,10 +4,10 @@ use warnings;
 package Template::Resolver;
 
 use Carp;
-use Log::Log4perl;
+use Log::Any;
 use Template::Transformer;
 
-my $logger = Log::Log4perl->get_logger();
+my $logger = Log::Any->get_logger();
 
 sub new {
     return bless( {}, shift )->_init( @_ );
