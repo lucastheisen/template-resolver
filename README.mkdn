@@ -4,7 +4,7 @@ Template::Resolver - A powerful, and simple, library for resolving placeholders 
 
 # VERSION
 
-version 1.0
+version 1.01
 
 # SYNOPSIS
 
