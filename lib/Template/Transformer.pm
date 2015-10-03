@@ -6,10 +6,10 @@ package Template::Transformer;
 use Carp;
 use Data::Dumper;
 use Hash::Util qw(lock_hashref);
-use Log::Log4perl;
+use Log::Any;
 use Safe;
 
-my $logger = Log::Log4perl->get_logger();
+my $logger = Log::Any->get_logger();
 
 sub new {
     return bless( {}, shift )->_init( @_ );
