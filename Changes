@@ -1,4 +1,7 @@
 Revision history for Perl module Template::Resolver
 
+1.01 2015-10-03
+    - Removed dependency on Log4perl
+
 1.0 2015-10-03
     - Initial release.
