@@ -1,0 +1,54 @@
+# NAME
+
+Template::Resolver - A powerful, and simple, library for resolving placeholders in templated files
+
+# VERSION
+
+version 1.0
+
+# SYNOPSIS
+
+    use Template::Resolver;
+    my $resolver = Template::Resolver->new($entity);
+    $resolver->resolve($file_handle_or_name, $template_prefix);
+
+# DESCRIPTION
+
+This module provides a powerful way to resolve placeholders inside of a templated file.
+It uses [Template::Transformer](https://metacpan.org/pod/Template::Transformer) to interpolate the the placeholder values.
+
+# CONSTRUCTORS
+
+## new(\\%entity, %options)
+
+Creates a new resolver with properties from `\%entity` and `%options` if any.  The
+available options are:
+
+- os
+
+    The operating system path format used when resolving `${TEMPLATE_os{xxx}}` placeholders.
+
+# METHODS
+
+## resolve($file\_handle\_or\_name, $placeholder\_prefix)
+
+Will read from `$file_handle_or_name` replacing all placeholders prefixed by 
+`$placeholder_prefix`.
+
+# AUTHOR
+
+Lucas Theisen <lucastheisen@pastdev.com>
+
+# COPYRIGHT AND LICENSE
+
+This software is copyright (c) 2015 by Lucas Theisen.
+
+This is free software; you can redistribute it and/or modify it under
+the same terms as the Perl 5 programming language system itself.
+
+# SEE ALSO
+
+Please see those modules/websites for more information related to this module.
+
+- [Template::Transformer](https://metacpan.org/pod/Template::Transformer)
+- [https://github.com/lucastheisen/template-resolver](https://github.com/lucastheisen/template-resolver)

@@ -3,6 +3,9 @@ use warnings;
 
 package Template::Resolver;
 
+# ABSTRACT: A powerful, and simple, library for resolving placeholders in templated files
+# PODNAME: Template::Resolver
+
 use Carp;
 use Log::Any;
 use Template::Transformer;
@@ -52,9 +55,10 @@ sub _get_property {
 }
 
 sub _init {
-    my ($self, $entity, $os) = @_;
+    my ($self, $entity, %options) = @_;
     
-    croak( "missing os" ) if ( ! $os );
+    my $os = $options{os} || $^O;
+
     $logger->debug( 'creating new Resolver' );
 
     $self->{entity} = $entity;
@@ -65,18 +69,60 @@ sub _init {
 }
 
 sub resolve {
-    my ($self, $in, $key) = @_;
+    my ($self, %options) = @_;
+
+    my $key = $options{key} || 'TEMPLATE';
     
-    my $contents;
-    if ( ref( $in ) eq 'GLOB' ) {
-        $contents = do { local( $/ ) = undef; <$in> };
+    my $content;
+    if ( $options{content} ) {
+        $content = $options{content}
+    }
+    elsif ( $options{handle} ) {
+        $content = do { local( $/ ) = undef; <$options{handle}> };
+    }
+    elsif ( $options{filename} ) {
+        $content = do { local( @ARGV, $/ ) = $options{filename}; <> };
     }
     else {
-        $contents = do { local( @ARGV, $/ ) = $in; <> };
+        croak( 'Must provide one of [content, handle, filename]' );
     }
 
-    $contents =~ s/\${$key(?:_(.*?))?{(.*?)}}/$self->_get_property($2,$1)/eg;
-    return $contents;
+    $content =~ s/\${$key(?:_(.*?))?{(.*?)}}/$self->_get_property($2,$1)/eg;
+    return $content;
 }
 
 1;
+
+__END__
+=head1 SYNOPSIS
+
+  use Template::Resolver;
+  my $resolver = Template::Resolver->new($entity);
+  $resolver->resolve($file_handle_or_name, $template_prefix);
+
+=head1 DESCRIPTION
+
+This module provides a powerful way to resolve placeholders inside of a templated file.
+It uses L<Template::Transformer> to interpolate the the placeholder values.
+
+=constructor new(\%entity, %options)
+
+Creates a new resolver with properties from C<\%entity> and C<%options> if any.  The
+available options are:
+
+=over 4
+
+=item os
+
+The operating system path format used when resolving C<${TEMPLATE_os{xxx}}> placeholders.
+
+=back
+
+=method resolve($file_handle_or_name, $placeholder_prefix)
+
+Will read from C<$file_handle_or_name> replacing all placeholders prefixed by 
+C<$placeholder_prefix>.
+
+=head1 SEE ALSO
+Template::Transformer
+https://github.com/lucastheisen/template-resolver
