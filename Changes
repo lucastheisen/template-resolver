@@ -1,5 +1,8 @@
 Revision history for Perl module Template::Resolver
 
+1.02 2015-12-05
+    - Fixed deprecated regex syntax
+
 1.01 2015-10-03
     - Removed dependency on Log4perl
 
