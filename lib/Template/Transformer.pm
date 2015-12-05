@@ -3,6 +3,9 @@ use warnings;
 
 package Template::Transformer;
 
+# ABSTRACT: Transformer used by Template::Resolver
+# PODNAME: Template::Transformer
+
 use Carp;
 use Data::Dumper;
 use Hash::Util qw(lock_hashref);
@@ -120,3 +123,7 @@ sub _wrap_transform {
 }
 
 1;
+
+__END__
+
+=for Pod::Coverage new transform
