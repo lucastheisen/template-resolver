@@ -1,5 +1,8 @@
 Revision history for Perl module Template::Resolver
 
+1.03 2016-01-22
+    - Added support for multi-line placeholder
+
 1.02 2015-12-05
     - Fixed deprecated regex syntax
 
