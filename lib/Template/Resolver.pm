@@ -87,7 +87,7 @@ sub resolve {
         croak( 'Must provide one of [content, handle, filename]' );
     }
 
-    $content =~ s/\$\{$key(?:_(.*?))?\{(.*?)\}\}/$self->_get_property($2,$1)/eg;
+    $content =~ s/\$\{$key(?:_(.*?))?\{(.*?)\}\}/$self->_get_property($2,$1)/egs;
     return $content;
 }
 
