@@ -1,5 +1,8 @@
 Revision history for Perl module Template::Resolver
 
+1.04 2016-01-23
+    - Add support for any blessed entity to be treated as if it were a hashref
+
 1.03 2016-01-22
     - Added support for multi-line placeholder
 
