@@ -4,7 +4,7 @@ Template::Resolver - A powerful, and simple, library for resolving placeholders 
 
 # VERSION
 
-version 1.03
+version 1.04
 
 # SYNOPSIS
 
@@ -37,7 +37,7 @@ Will read from `$file_handle_or_name` replacing all placeholders prefixed by
 
 # AUTHOR
 
-Lucas Theisen <lucastheisen@pastdev.com>
+Lucas Theisen &lt;lucastheisen@pastdev.com>
 
 # COPYRIGHT AND LICENSE
 
