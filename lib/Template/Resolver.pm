@@ -8,6 +8,7 @@ package Template::Resolver;
 
 use Carp;
 use Log::Any;
+use Scalar::Util qw(blessed);
 use Template::Transformer;
 
 my $logger = Log::Any->get_logger();
@@ -22,7 +23,7 @@ sub _entity_to_properties {
     $properties = {} unless $properties;
 
     my $ref = ref( $entity );
-    if ( $ref && $ref eq 'HASH' ) {
+    if ( ( $ref && $ref eq 'HASH' ) || blessed( $entity ) ) {
         foreach my $key ( keys( %{$entity} ) ) {
             _entity_to_properties( $entity->{$key}, $properties, 
                 ($prefix ? "$prefix.$key" : $key) );
