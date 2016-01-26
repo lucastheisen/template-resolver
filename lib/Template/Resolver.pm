@@ -98,7 +98,7 @@ __END__
 
   use Template::Resolver;
   my $resolver = Template::Resolver->new($entity);
-  $resolver->resolve($file_handle_or_name, $template_prefix);
+  $resolver->resolve(file => '/path/to/file', key => 'REPLACEME');
 
 =head1 DESCRIPTION
 
@@ -118,11 +118,32 @@ The operating system path format used when resolving C<${TEMPLATE_os{xxx}}> plac
 
 =back
 
-=method resolve($file_handle_or_name, $placeholder_prefix)
+=method resolve(%options)
 
-Will read from C<$file_handle_or_name> replacing all placeholders prefixed by 
-C<$placeholder_prefix>.
+Will read the template and replace all placeholders prefixed by C<key>. One of the 
+options C<content>, C<handle>, or C<filename> is required.  The available options are:
+
+=over 4
+
+=item content
+
+A string containing templated content.
+
+=item filename
+
+The name of a file containing templated content.
+
+=item handle
+
+A handle to a file containing templated content.
+
+=item key
+
+The template key, defaults to C<TEMPLATE>.
+
+=back
 
 =head1 SEE ALSO
 Template::Transformer
+Template::Overlay
 https://github.com/lucastheisen/template-resolver
