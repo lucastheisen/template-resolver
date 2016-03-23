@@ -4,7 +4,7 @@ Template::Resolver - A powerful, and simple, library for resolving placeholders 
 
 # VERSION
 
-version 1.05
+version 1.06
 
 # SYNOPSIS
 
@@ -53,7 +53,7 @@ options `content`, `handle`, or `filename` is required.  The available options a
 
 # AUTHOR
 
-Lucas Theisen &lt;lucastheisen@pastdev.com>
+Lucas Theisen <lucastheisen@pastdev.com>
 
 # COPYRIGHT AND LICENSE
 
