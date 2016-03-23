@@ -79,6 +79,7 @@ sub overlay {
     }
     foreach my $relative (keys(%overlay_files)) {
         my $file = File::Spec->catfile($destination, $relative);
+        make_path((File::Spec->splitpath($file))[1]);
         $self->_resolve($overlay_files{$relative}, $file);
     }
 }

@@ -9,7 +9,7 @@ eval {
 if ($@) {
 }
 
-use Test::More tests => 13;
+use Test::More tests => 14;
 
 BEGIN {use_ok('Template::Overlay')}
 
@@ -30,12 +30,12 @@ sub test_file {
 }
 
 sub overlay {
-    my ($config, $overlays) = @_;
+    my ($config, $overlays, $no_base) = @_;
 
     my $dir = File::Temp->newdir();
     Template::Overlay
         ->new(
-            test_dir('base'),
+            $no_base ? $dir : test_dir('base'),
             Template::Resolver->new($config),
             key => 'T')
         ->overlay($overlays, to=>$dir);
@@ -110,3 +110,8 @@ like($results->{'subdir/b.txt'},
 like($results->{'c.txt'},
     qr/Another file full of nonsense\.(?:\r|\n|\r\n)/, 
     'overlay2,overlay1 c.txt');
+
+my $results = overlay($config, test_dir('overlay1'), 1);
+like($results->{'subdir/b.txt'},
+    qr/Random thought for today is: something awesome(?:\r|\n|\r\n)/, 
+    'overlay1 subdir/b.txt no base');
