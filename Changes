@@ -1,5 +1,9 @@
 Revision history for Perl module Template::Resolver
 
+1.06 2016-03-23
+    - Fixed: Overlay fails if template is in a directory that does not exist in base 
+      (https://github.com/lucastheisen/template-resolver/issues/1)
+
 1.05 2016-01-25
     - Added overlays
 
