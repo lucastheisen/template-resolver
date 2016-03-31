@@ -90,7 +90,7 @@ sub _resolve {
     $logger->info('processing [', $template, '] -> [', $file, ']');
     
     my $mode = stat($template)->mode() & 07777; ## no critic
-    sysopen(my $handle, $file, O_CREAT|O_WRONLY, $mode)
+    sysopen(my $handle, $file, O_CREAT|O_TRUNC|O_WRONLY, $mode)
         || croak("open $file failed: $!");
     eval {
         print($handle 

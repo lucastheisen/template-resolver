@@ -1,5 +1,9 @@
 Revision history for Perl module Template::Resolver
 
+1.08 2016-03-31
+    - Added O_TRUNC to sysopen to ensure file is truncated if it already exists 
+      during template resolution.
+
 1.07 2016-03-31
     - Fixed overlay to maintain file permissions.  Will use permission from existing 
       files, both base and template, augmented by the current umask.
