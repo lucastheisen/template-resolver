@@ -1,5 +1,9 @@
 Revision history for Perl module Template::Resolver
 
+1.07 2016-03-31
+    - Fixed overlay to maintain file permissions.  Will use permission from existing 
+      files, both base and template, augmented by the current umask.
+
 1.06 2016-03-23
     - Fixed: Overlay fails if template is in a directory that does not exist in base 
       (https://github.com/lucastheisen/template-resolver/issues/1)

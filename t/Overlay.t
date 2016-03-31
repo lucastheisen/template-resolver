@@ -111,7 +111,7 @@ like($results->{'c.txt'},
     qr/Another file full of nonsense\.(?:\r|\n|\r\n)/, 
     'overlay2,overlay1 c.txt');
 
-my $results = overlay($config, test_dir('overlay1'), 1);
+$results = overlay($config, test_dir('overlay1'), 1);
 like($results->{'subdir/b.txt'},
     qr/Random thought for today is: something awesome(?:\r|\n|\r\n)/, 
     'overlay1 subdir/b.txt no base');

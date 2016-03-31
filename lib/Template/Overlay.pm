@@ -7,12 +7,12 @@ package Template::Overlay;
 # PODNAME: Template::Resolver
 
 use Carp;
-use File::Copy qw(cp);
+use File::Copy qw(copy);
 use File::Find;
 use File::Path qw(make_path);
 use File::Spec;
 use File::stat;
-use Fcntl ':mode';
+use Fcntl;
 use Log::Any;
 use Template::Overlay;
 
@@ -72,7 +72,7 @@ sub overlay {
                         $self->_resolve($template, $file);
                     }
                     else {
-                        cp($_, $file);
+                        copy($_, $file);
                     }
                 }
             }, $self->{base});
@@ -88,7 +88,10 @@ sub _resolve {
     my ($self, $template, $file) = @_;
 
     $logger->info('processing [', $template, '] -> [', $file, ']');
-    open(my $handle, '>', $file) || croak("open $file failed: $!");
+    
+    my $mode = stat($template)->mode() & 07777; ## no critic
+    sysopen(my $handle, $file, O_CREAT|O_WRONLY, $mode)
+        || croak("open $file failed: $!");
     eval {
         print($handle 
             $self->{resolver}->resolve(
