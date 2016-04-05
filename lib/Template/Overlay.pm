@@ -87,9 +87,13 @@ sub overlay {
 sub _resolve {
     my ($self, $template, $file) = @_;
 
-    $logger->info('processing [', $template, '] -> [', $file, ']');
-    
+    if (-f $file) {
+        $logger->debugf('[%s] already exists, deleting to ensure creation with proper permissions', $file);
+        unlink($file);
+    }
+
     my $mode = stat($template)->mode() & 07777; ## no critic
+    $logger->infof('processing [%s] -> [%04o] [%s]', $template, $mode, $file);
     sysopen(my $handle, $file, O_CREAT|O_TRUNC|O_WRONLY, $mode)
         || croak("open $file failed: $!");
     eval {

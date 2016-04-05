@@ -1,5 +1,9 @@
 Revision history for Perl module Template::Resolver
 
+1.09 2016-03-31
+    - Remove file if it exists before processing template to ensure proper
+      permissions are propagated.
+
 1.08 2016-03-31
     - Added O_TRUNC to sysopen to ensure file is truncated if it already exists 
       during template resolution.

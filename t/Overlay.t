@@ -9,7 +9,7 @@ eval {
 if ($@) {
 }
 
-use Test::More tests => 14;
+use Test::More tests => 16;
 
 BEGIN {use_ok('Template::Overlay')}
 
@@ -115,3 +115,46 @@ $results = overlay($config, test_dir('overlay1'), 1);
 like($results->{'subdir/b.txt'},
     qr/Random thought for today is: something awesome(?:\r|\n|\r\n)/, 
     'overlay1 subdir/b.txt no base');
+
+sub spurt {
+    my ($content, $file, %options) = @_; 
+    my $write_mode = $options{append} ? '>>' : '>';
+    open(my $handle, $write_mode, $file)
+        || croak("unable to open [$file]: $!");
+    print($handle $content); 
+    close($handle);
+}
+
+sub slurp {
+    my ($file) = @_;
+    return do { local( @ARGV, $/ ) = $file; <> };
+}
+
+{
+    my $temp_dir = File::Temp->newdir();
+    my $base_dir = File::Spec->catdir($temp_dir, 'base');
+    mkdir($base_dir);
+    my $template_dir = File::Spec->catdir($temp_dir, 'template');
+    mkdir($template_dir);
+    my $overlay_dir = File::Spec->catdir($temp_dir, 'overlay');
+    mkdir($overlay_dir);
+
+    my $base_file = File::Spec->catfile($base_dir, 'file.txt');
+    spurt("foo", $base_file);
+    chmod(0644, $base_file);
+    my $template_file = File::Spec->catfile($template_dir, 'file.txt');
+    spurt("bar", $template_file);
+    chmod(0755, $template_file);
+
+    my $old_umask = umask(0027);
+    eval {
+        Template::Overlay->new($base_dir, Template::Resolver->new({}))
+            ->overlay($template_dir, to=>$overlay_dir);
+    };
+    my $error = $@;
+    umask($old_umask);
+    ok(!$error, 'permission overlay');
+    my $overlay_file = File::Spec->catfile($overlay_dir, 'file.txt');
+    is("100750", sprintf('%04o', (stat($overlay_file))[2]), 
+        'mode set correctly when found in both base and template');
+}
