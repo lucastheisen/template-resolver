@@ -1,5 +1,9 @@
 Revision history for Perl module Template::Resolver
 
+1.10 2016-07-01
+    - Added the ability to supply a resolver to the overlay method to augment the 
+      default behavior
+
 1.09 2016-03-31
     - Remove file if it exists before processing template to ensure proper
       permissions are propagated.
