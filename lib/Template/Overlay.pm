@@ -39,11 +39,11 @@ sub _overlay_files {
     my %overlay_files = ();
     foreach my $overlay (ref($overlays) eq 'ARRAY' ? @$overlays : ($overlays)) {
         $overlay = File::Spec->rel2abs($overlay);
-        my $length = length($overlay);
+        my $base_path_length = length($overlay);
         find(
             sub {
                 if (-f $File::Find::name && $_ !~/~$/ && $_ !~ /^\..+\.swp$/ ) {
-                    my $relative = substr($File::Find::name, $length);
+                    my $relative = _relative_path($File::Find::name, $base_path_length);
                     $overlay_files{$relative} = $File::Find::name;
                 }
             }, $overlay);
@@ -59,10 +59,10 @@ sub overlay {
     my $destination = $self->{base};
     if ($options{to} && $options{to} ne $self->{base}) {
         $destination = File::Spec->rel2abs($options{to});
-        my $length = length(File::Spec->rel2abs($self->{base}));
+        my $base_path_length = length(File::Spec->rel2abs($self->{base}));
         find(
             sub {
-                my $relative = substr($File::Find::name, $length);
+                my $relative = _relative_path($File::Find::name, $base_path_length);
                 if (-d $File::Find::name) {
                     make_path(File::Spec->catdir($destination, $relative));
                 }
@@ -83,6 +83,12 @@ sub overlay {
         make_path((File::Spec->splitpath($file))[1]);
         $self->_resolve($overlay_files{$relative}, $file, $options{resolver});
     }
+}
+
+sub _relative_path {
+    my ($path, $base_path_length) = @_;
+    return length($path) == $base_path_length
+        ? '' : substr($File::Find::name, $base_path_length + 1);
 }
 
 sub _resolve {

@@ -1,5 +1,8 @@
 Revision history for Perl module Template::Resolver
 
+1.11 2016-07-01
+    - Removed double slash from path in destination file
+
 1.10 2016-07-01
     - Added the ability to supply a resolver to the overlay method to augment the 
       default behavior
