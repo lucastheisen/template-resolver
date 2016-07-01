@@ -14,7 +14,6 @@ use File::Spec;
 use File::stat;
 use Fcntl;
 use Log::Any;
-use Template::Overlay;
 
 my $logger = Log::Any->get_logger();
 
@@ -40,10 +39,12 @@ sub _overlay_files {
     my %overlay_files = ();
     foreach my $overlay (ref($overlays) eq 'ARRAY' ? @$overlays : ($overlays)) {
         $overlay = File::Spec->rel2abs($overlay);
+        my $length = length($overlay);
         find(
             sub {
-                if (-f $File::Find::name && $File::Find::name =~ /^$overlay\/(.*[^~])$/) {
-                    $overlay_files{$1} = $File::Find::name;
+                if (-f $File::Find::name && $_ !~/~$/ && $_ !~ /^\..+\.swp$/ ) {
+                    my $relative = substr($File::Find::name, $length);
+                    $overlay_files{$relative} = $File::Find::name;
                 }
             }, $overlay);
     }
@@ -58,7 +59,7 @@ sub overlay {
     my $destination = $self->{base};
     if ($options{to} && $options{to} ne $self->{base}) {
         $destination = File::Spec->rel2abs($options{to});
-        my $length = length($self->{base});
+        my $length = length(File::Spec->rel2abs($self->{base}));
         find(
             sub {
                 my $relative = substr($File::Find::name, $length);
@@ -69,7 +70,7 @@ sub overlay {
                     my $template = delete($overlay_files{$relative});
                     my $file = File::Spec->catfile($destination, $relative);
                     if ($template) {
-                        $self->_resolve($template, $file);
+                        $self->_resolve($template, $file, $options{resolver});
                     }
                     else {
                         copy($_, $file);
@@ -80,12 +81,14 @@ sub overlay {
     foreach my $relative (keys(%overlay_files)) {
         my $file = File::Spec->catfile($destination, $relative);
         make_path((File::Spec->splitpath($file))[1]);
-        $self->_resolve($overlay_files{$relative}, $file);
+        $self->_resolve($overlay_files{$relative}, $file, $options{resolver});
     }
 }
 
 sub _resolve {
-    my ($self, $template, $file) = @_;
+    my ($self, $template, $file, $resolver) = @_;
+
+    return if ($resolver && &$resolver($template, $file));
 
     if (-f $file) {
         $logger->debugf('[%s] already exists, deleting to ensure creation with proper permissions', $file);
@@ -149,6 +152,15 @@ or an array reference containing paths.  If multiple C<$overlays> contain the sa
 template, the last one in the array will take precedence.  The available options are:
 
 =over 4
+
+=item resolver
+
+A callback, that if specified, will be called for each template file found.  It will
+be called with two arguments: the first is the path to the template file, the second
+is the path to the destination file.  If the callback returns a I<falsey> value, 
+then it is assumed that the supplied callbac decided not to process this file and 
+processing will proceed as normal.  Otherwise, it is assumed that the callback 
+handled processing of the file, so the default processing will be skipped.
 
 =item to
 

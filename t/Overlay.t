@@ -9,7 +9,7 @@ eval {
 if ($@) {
 }
 
-use Test::More tests => 16;
+use Test::More tests => 20;
 
 BEGIN {use_ok('Template::Overlay')}
 
@@ -30,7 +30,7 @@ sub test_file {
 }
 
 sub overlay {
-    my ($config, $overlays, $no_base) = @_;
+    my ($config, $overlays, $no_base, %options) = @_;
 
     my $dir = File::Temp->newdir();
     Template::Overlay
@@ -38,7 +38,7 @@ sub overlay {
             $no_base ? $dir : test_dir('base'),
             Template::Resolver->new($config),
             key => 'T')
-        ->overlay($overlays, to=>$dir);
+        ->overlay($overlays, to=>$dir, %options);
 
     my %results = ();
     find(
@@ -50,6 +50,19 @@ sub overlay {
     return \%results;
 }
 
+sub spurt {
+    my ($content, $file, %options) = @_; 
+    my $write_mode = $options{append} ? '>>' : '>';
+    open(my $handle, $write_mode, $file)
+        || croak("unable to open [$file]: $!");
+    print($handle $content); 
+    close($handle);
+}
+
+sub slurp {
+    my ($file) = @_;
+    return do { local( @ARGV, $/ ) = $file; <> };
+}
 
 my $config = {
     what=>{this=>{'is'=>'im not sure'}},
@@ -116,18 +129,30 @@ like($results->{'subdir/b.txt'},
     qr/Random thought for today is: something awesome(?:\r|\n|\r\n)/, 
     'overlay1 subdir/b.txt no base');
 
-sub spurt {
-    my ($content, $file, %options) = @_; 
-    my $write_mode = $options{append} ? '>>' : '>';
-    open(my $handle, $write_mode, $file)
-        || croak("unable to open [$file]: $!");
-    print($handle $content); 
-    close($handle);
-}
+{
+    my $callback_called;
+    $results = overlay($config, test_dir('overlay1'), 1, 
+        resolver =>  sub {
+            my ($template, $file) = @_;
+            $callback_called = 1;
+            spurt("foo", $file);
+            return 1;
+        });
+    ok($callback_called, 'callback called, processing stopped');
+    is($results->{'subdir/b.txt'}, 'foo',
+        'callback overlay1 subdir/b.txt no base');
 
-sub slurp {
-    my ($file) = @_;
-    return do { local( @ARGV, $/ ) = $file; <> };
+    $callback_called = 0;
+    $results = overlay($config, test_dir('overlay1'), 1, 
+        resolver =>  sub {
+            my ($template, $file) = @_;
+            $callback_called = 1;
+            return 0;
+        });
+    ok($callback_called, 'callback called, processing proceeded');
+    like($results->{'subdir/b.txt'},
+        qr/Random thought for today is: something awesome(?:\r|\n|\r\n)/, 
+        'callback override overlay1 subdir/b.txt no base');
 }
 
 {
