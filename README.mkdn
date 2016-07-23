@@ -4,7 +4,7 @@ Template::Resolver - A powerful, and simple, library for resolving placeholders 
 
 # VERSION
 
-version 1.11
+version 1.12
 
 # SYNOPSIS
 
@@ -23,6 +23,13 @@ It uses [Template::Transformer](https://metacpan.org/pod/Template::Transformer) 
 
 Creates a new resolver with properties from `\%entity` and `%options` if any.  The
 available options are:
+
+- additional\_transforms
+
+    Additional custom transforms that will be added to the standard transforms.
+    Must be a hashref containing transform name to sub reference mappings.  
+    The sub reference(s) will be called as a method(s) with a single parameter
+    containing the contents of the placeholder.
 
 - os
 
