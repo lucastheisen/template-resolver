@@ -39,7 +39,7 @@ sub _env {
 }
 
 sub _init {
-    my ($self, $os, $properties) = @_;
+    my ($self, $os, $properties, %options) = @_;
     $logger->debug( 'initializing transformer for ', $os );
     
     $self->{os} = $os;
@@ -53,6 +53,13 @@ sub _init {
         'perl' => $self->_wrap_transform( \&_perl ),
         'xml_escape' => $self->_wrap_transform( \&_xml_escape )
     };
+    if ($options{additional_transforms}) {
+        foreach my $transform (keys(%{$options{additional_transforms}})) {
+            $self->{wrapped_transforms}{$transform} =
+                $self->_wrap_transform( 
+                    $options{additional_transforms}{$transform} );
+        }
+    }
     lock_hashref( $self->{wrapped_transforms} );
     
     return $self;

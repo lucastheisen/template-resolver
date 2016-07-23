@@ -64,7 +64,11 @@ sub _init {
 
     $self->{entity} = $entity;
     $self->{transformer} = Template::Transformer->new( 
-        $os, _entity_to_properties( $entity ) );
+        $os, 
+        _entity_to_properties( $entity ),
+        ($options{additional_transforms} 
+            ? (additional_transforms => $options{additional_transforms})
+            : ()));
 
     return $self;
 }
@@ -112,6 +116,13 @@ Creates a new resolver with properties from C<\%entity> and C<%options> if any. 
 available options are:
 
 =over 4
+
+=item additional_transforms
+
+Additional custom transforms that will be added to the standard transforms.
+Must be a hashref containing transform name to sub reference mappings.  
+The sub reference(s) will be called as a method(s) with a single parameter
+containing the contents of the placeholder.
 
 =item os
 
