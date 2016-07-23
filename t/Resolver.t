@@ -1,19 +1,11 @@
 use strict;
 use warnings;
 
-eval {
-    require Log::Log4perl;
-    Log::Log4perl->easy_init($Log::Log4perl::ERROR);
-    $Log::Log4perl::ERROR if (0); # prevent used only once warning
-};
-if ($@) {
-}
-
+use Log::Any::Adapter ('Stdout', log_level => 'debug');
+use Template::Resolver;
 use Test::More tests => 3;
 
 BEGIN {use_ok('Template::Resolver')}
-
-use Template::Resolver;
 
 sub resolver {
     return Template::Resolver->new(@_);

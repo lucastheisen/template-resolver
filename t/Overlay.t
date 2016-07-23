@@ -1,23 +1,15 @@
 use strict;
 use warnings;
 
-eval {
-    require Log::Log4perl;
-    Log::Log4perl->easy_init($Log::Log4perl::ERROR);
-    $Log::Log4perl::ERROR if (0); # prevent used only once warning
-};
-if ($@) {
-}
-
-use Test::More tests => 20;
-
-BEGIN {use_ok('Template::Overlay')}
-
 use File::Basename;
 use File::Find;
 use File::Temp;
+use Log::Any::Adapter ('Stdout', log_level => 'debug');
 use Template::Overlay;
 use Template::Resolver;
+use Test::More tests => 20;
+
+BEGIN {use_ok('Template::Overlay')}
 
 my $test_dir = dirname(File::Spec->rel2abs($0));
 
