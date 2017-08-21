@@ -78,7 +78,7 @@ sub _init {
 }
 
 sub _resolve_loop {
-    my ($self, $loop_name, $property_name, $content) = @_;
+    my ($self, $template_key, $loop_name, $property_name, $content) = @_;
     my $property_value = $self->_get_value($property_name);
     my $result         = '';
     my $ref            = ref($property_value);
@@ -101,9 +101,21 @@ sub _resolve_loop {
         croak("'$property_name': does not exist");
     }
 
+    my $resolve_template = sub {
+        my ($text, $key) = @_;
+        if ($text eq "\$\{\Q$template_key\E<\Q$loop_name\E\.\Q$key_match\E\}\}") {
+            $text = $key;
+        }
+        else {
+            $text =~ s/<\Q$loop_name\E(\.\Q$key_match\E)?>/$replacer->($key,$1)/egs;
+        }
+        return $text;
+    };
+
     foreach my $key (@keys) {
         my $line = $content;
-        $line =~ s/<\Q$loop_name\E(\.\Q$key_match\E)?>/$replacer->($key,$1)/egs;
+        $line =~ s/\$\{$template_key<\Q$loop_name\E\.\Q$key_match\E>\}/$key/egs;
+        $line =~ s/(\$\{$template_key.*?\}\})/$resolve_template->($1, $key)/egs;
         $result = $result . $line;
     }
 
@@ -115,7 +127,7 @@ sub _resolve_loops {
     my $done = 0;
     while (!$done) {
         my $converted = $content
-            =~ s/\$\{for <(\S+)> in $key\{(.*?)\}\}(.*?)\$\{end <\1>\}/$self->_resolve_loop($1,$2,$3)/egs;
+            =~ s/\$\{$key<(\S+)>:\{(.*?)\}\}(.*?)\$\{$key<\1>:end\}/$self->_resolve_loop($key,$1,$2,$3)/egs;
         $done = ($converted == 0);
     }
     return $content;
@@ -175,27 +187,27 @@ This module provides a powerful way to resolve placeholders inside of a template
 It uses L<Template::Transformer> to interpolate the the placeholder values. The
 provided template may refer to entity values directly (i.e.
 C<${TEMPLATE{my.entity.value}}>) or through transformations (i.e.
-C<${TEMPLATE{my.truthy}:boolean>).
+C<${TEMPLATE_perl{property("my.truthy") ? "true" : "false"}}>).
 You may also loop over hash and array entities like this (newlines and indentation
 included for clarity):
 
-  ${for <CLUB> in TEMPLATE{my.clubs}}$
-      {for <MEMBER> in TEMPLATE{<CLUB>.members}}
+  ${TEMPLATE<CLUB>:{my.clubs}}$
+      {TEMPLATE<MEMBER>:{<CLUB>.members}}
           ${TEMPLATE{<MEMBER>.name}} is a member of the ${TEMPLATE{<CLUB>.club_name}} club.
-      ${end <MEMBER>}
-  ${end <CLUB>}
+      ${TEMPLATE<MEMBER>:end}
+  ${TEMPATE<CLUB>:end}
   
 You may access the key when iterating over hashes:
 
-  ${for <RESOURCE> in TEMPLATE{my.resources}}
-      Resource, <RESOURCE.key> is ${TEMPLATE{<RESOURCE>.deployed_artifact}}
-  ${end <RESOURCE>}
+  ${TEMPLATE<RESOURCE>:{my.resources}}
+      Resource, ${TEMPLATE:<RESOURCE.key>} is ${TEMPLATE{<RESOURCE>.deployed_artifact}}
+  ${TEMPLATE<RESOURCE>:end}
  
 You may also access the index when iterating over arrays:
 
-  ${for <CLUB> in TEMPLATE{my.clubs}}$
-      Club at index <CLUB.ix> is ${TEMPLATE{<CLUB.name>}}
-  ${end <CLUB>}
+  ${TEMPLATE<CLUB>:{my.clubs}}
+      Club at index ${TEMPLATE<CLUB.ix>} is ${TEMPLATE{<CLUB.name>}}
+  ${TEMPLATE<CLUB>:end}
  
 =constructor new(\%entity, %options)
 
