@@ -5,7 +5,7 @@ use warnings;
 
 use Log::Any::Adapter ('Stdout', log_level => 'debug');
 use Template::Resolver;
-use Test::More tests => 4;
+use Test::More tests => 5;
 
 BEGIN {use_ok('Template::Resolver')}
 
@@ -31,16 +31,55 @@ is( resolver(
         }
         )->resolve(
         key     => 'T',
-        content => '${for <emp> in T{employees}}'
-            . '${for <awd> in T{<emp>.awards}}'
-            . '${T{<emp>.name}} got ${T{<awd>.received}} ${T{<awd>.type}} awards' . "\n"
-            . '${end <awd>}'
-            . '${end <emp>}'
+        content => '${for <EMP> in T{employees}}'
+            . '<EMP.ix>. ${T{<EMP>.name}}:' . "\n"
+            . '${for <AWD> in T{<EMP>.awards}}'
+            . '   <AWD.ix>: ${T{<EMP>.name}} got ${T{<AWD>.received}} ${T{<AWD>.type}} awards'
+            . "\n"
+            . '${end <AWD>}'
+            . '${end <EMP>}'
         ),
-    "Bob got 2 BEST awards\n"
-        . "Bob got 12 PARTICIPATION awards\n"
-        . "Jane got 7 BEST awards\n"
-        . "Jane got 5 PARTICIPATION awards\n",
+    "0. Bob:\n"
+        . "   0: Bob got 2 BEST awards\n"
+        . "   1: Bob got 12 PARTICIPATION awards\n"
+        . "1. Jane:\n"
+        . "   0: Jane got 7 BEST awards\n"
+        . "   1: Jane got 5 PARTICIPATION awards\n",
+    'Simple placeholder'
+);
+
+is( resolver(
+        {   employees => {
+                'Bob' => {
+                    awards => {
+                        BEST          => {received => 2},
+                        PARTICIPATION => {received => 12}
+                    }
+                },
+                'Jane' => {
+                    awards => {
+                        BEST          => {received => 7},
+                        PARTICIPATION => {received => 5}
+                    }
+                },
+            }
+        }
+        )->resolve(
+        key     => 'T',
+        content => '${for <EMP> in T{employees}}'
+            . '<EMP.key>:' . "\n"
+            . '${for <AWD> in T{<EMP>.awards}}'
+            . '   <EMP.key> got ${T{<AWD>.received}} <AWD.key> awards'
+            . "\n"
+            . '${end <AWD>}'
+            . '${end <EMP>}'
+        ),
+    "Bob:\n"
+        . "   Bob got 2 BEST awards\n"
+        . "   Bob got 12 PARTICIPATION awards\n"
+        . "Jane:\n"
+        . "   Jane got 7 BEST awards\n"
+        . "   Jane got 5 PARTICIPATION awards\n",
     'Simple placeholder'
 );
 

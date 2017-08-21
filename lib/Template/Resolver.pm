@@ -77,53 +77,36 @@ sub _init {
     return $self;
 }
 
-sub _resolve_array_loop {
-    my ($self, $loop_name, $property_name, $property_value, $content) = @_;
-    my ($result, $key, $value) = ('', '', '');
-    my $resolve = sub {
-        return (!$_[0]) ? "${property_name}[${key}]" : ($_[0] eq 'key') ? $key : $value;
-    };
-    while (($key, $value) = each(@$property_value)) {
-        my $line = $content;
-        $line =~ s/\<$loop_name(?:\.(key|value))?>/$resolve->($1)/egs;
-        $result = $result . $line;
-    }
-    return $result;
-}
-
-sub _resolve_hash_loop {
-    my ($self, $loop_name, $property_name, $property_value, $content) = @_;
-    my ($result, $key, $value) = ('', '', '');
-    my $resolve = sub {
-        return (!$_[0]) ? "${property_name}.${key}" : ($_[0] eq 'key') ? $key : $value;
-    };
-    while (($key, $value) = each(%$property_value)) {
-        my $line = $content;
-        $line =~ s/\$\{$loop_name(?:\.(key|value))?\}/$resolve->($1)/egs;
-        $result = $result . $line;
-    }
-    return $result;
-}
-
 sub _resolve_loop {
     my ($self, $loop_name, $property_name, $content) = @_;
     my $property_value = $self->_get_value($property_name);
     my $result         = '';
     my $ref            = ref($property_value);
+    my ($replacer, $key_match, @keys);
+
     if ($ref && $ref eq 'HASH') {
-        $result =
-            $self->_resolve_hash_loop($loop_name, $property_name, $property_value, $content);
+        $replacer  = sub {return $_[1] ? $_[0] : "${property_name}.${_[0]}"};
+        $key_match = "key";
+        @keys      = sort(keys(%$property_value));
     }
     elsif ($ref && $ref eq 'ARRAY') {
-        $result =
-            $self->_resolve_array_loop($loop_name, $property_name, $property_value, $content);
+        $replacer  = sub {return $_[1] ? $_[0] : "${property_name}[${_[0]}]"};
+        $key_match = "ix";
+        @keys      = keys(@$property_value);
     }
     elsif ($ref) {
-        croak("'$property_name': unsupported ref type '$ref'");
+        croak("'$property_name': cannot loop on unsupported ref type '$ref'");
     }
     else {
         croak("'$property_name': does not exist");
     }
+
+    foreach my $key (@keys) {
+        my $line = $content;
+        $line =~ s/<\Q$loop_name\E(\.\Q$key_match\E)?>/$replacer->($key,$1)/egs;
+        $result = $result . $line;
+    }
+
     return $result;
 }
 
@@ -198,10 +181,22 @@ included for clarity):
 
   ${for <CLUB> in TEMPLATE{my.clubs}}$
       {for <MEMBER> in TEMPLATE{<CLUB>.members}}
-          ${TEMPLATE{<MEMBER>.name>}} is a member of the ${TEMPLATE{<CLUB>.club_name}} club.
+          ${TEMPLATE{<MEMBER>.name}} is a member of the ${TEMPLATE{<CLUB>.club_name}} club.
       ${end <MEMBER>}
   ${end <CLUB>}
+  
+You may access the key when iterating over hashes:
 
+  ${for <RESOURCE> in TEMPLATE{my.resources}}
+      Resource, <RESOURCE.key> is ${TEMPLATE{<RESOURCE>.deployed_artifact}}
+  ${end <RESOURCE>}
+ 
+You may also access the index when iterating over arrays:
+
+  ${for <CLUB> in TEMPLATE{my.clubs}}$
+      Club at index <CLUB.ix> is ${TEMPLATE{<CLUB.name>}}
+  ${end <CLUB>}
+ 
 =constructor new(\%entity, %options)
 
 Creates a new resolver with properties from C<\%entity> and C<%options> if any.  The
