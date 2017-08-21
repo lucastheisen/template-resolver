@@ -47,8 +47,6 @@ sub _entity_to_properties {
     return $properties;
 }
 
-use Data::Dumper;
-
 sub _get_property {
     my ($self, $value, $transform) = @_;
     my $transformed = $self->{transformer}->transform($value, $transform);
