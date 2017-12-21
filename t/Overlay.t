@@ -3,7 +3,7 @@ use warnings;
 
 use File::Basename;
 use File::Find;
-use File::Temp 0.19;
+use File::Temp;
 use Log::Any::Adapter ('Stdout', log_level => 'debug');
 use Template::Overlay;
 use Template::Resolver;
@@ -28,10 +28,10 @@ sub overlay {
     my $dir = File::Temp->newdir(); #returns object
     Template::Overlay
         ->new(
-            $no_base ? $dir->dirname : test_dir('base'),
+            $no_base ? $dir->dirname() : test_dir('base'),
             Template::Resolver->new($config),
             key => 'T')
-        ->overlay($overlays, to=>$dir->dirname, %options);
+        ->overlay($overlays, to=>$dir->dirname(), %options);
     my %results = ();
     find(
         sub {
