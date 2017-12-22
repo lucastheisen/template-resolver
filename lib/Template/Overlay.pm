@@ -4,7 +4,7 @@ use warnings;
 package Template::Overlay;
 
 # ABSTRACT: A powerful, and simple, library for resolving placeholders in templated files
-# PODNAME: Template::Resolver
+# PODNAME: Template::Overlay
 
 use Carp;
 use File::Copy qw(copy);
@@ -23,7 +23,7 @@ sub new {
 
 sub _init {
     my ($self, $base, $resolver, %options) = @_;
-    
+
     $self->{base} = File::Spec->rel2abs($base);
     $self->{resolver} = $resolver;
     $self->{key} = $options{key};
@@ -106,9 +106,9 @@ sub _resolve {
     sysopen(my $handle, $file, O_CREAT|O_TRUNC|O_WRONLY, $mode)
         || croak("open $file failed: $!");
     eval {
-        print($handle 
+        print($handle
             $self->{resolver}->resolve(
-                filename => $template, 
+                filename => $template,
                 ($self->{key} ? (key => $self->{key}) : ()) ));
     };
     my $error = $@;
@@ -152,9 +152,9 @@ The template key used by C<Template::Resolver-E<lt>resolve>.
 
 =method overlay($overlays, [%options])
 
-Overlays the C<$base> directory (specified in the constructor) with the resolved 
+Overlays the C<$base> directory (specified in the constructor) with the resolved
 templates from the directories in C<$overlays>.  C<$overlays> can be either a path,
-or an array reference containing paths.  If multiple C<$overlays> contain the same 
+or an array reference containing paths.  If multiple C<$overlays> contain the same
 template, the last one in the array will take precedence.  The available options are:
 
 =over 4
@@ -163,9 +163,9 @@ template, the last one in the array will take precedence.  The available options
 
 A callback, that if specified, will be called for each template file found.  It will
 be called with two arguments: the first is the path to the template file, the second
-is the path to the destination file.  If the callback returns a I<falsey> value, 
-then it is assumed that the supplied callbac decided not to process this file and 
-processing will proceed as normal.  Otherwise, it is assumed that the callback 
+is the path to the destination file.  If the callback returns a I<falsey> value,
+then it is assumed that the supplied callbac decided not to process this file and
+processing will proceed as normal.  Otherwise, it is assumed that the callback
 handled processing of the file, so the default processing will be skipped.
 
 =item to

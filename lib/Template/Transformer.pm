@@ -41,10 +41,10 @@ sub _env {
 sub _init {
     my ($self, $os, $properties, %options) = @_;
     $logger->debug( 'initializing transformer for ', $os );
-    
+
     $self->{os} = $os;
     $self->{properties} = $properties;
-    
+
     $self->{wrapped_transforms} = {
         'boolean' => $self->_wrap_transform( \&_boolean ),
         'default' => $self->_wrap_transform( \&_default ),
@@ -56,12 +56,12 @@ sub _init {
     if ($options{additional_transforms}) {
         foreach my $transform (keys(%{$options{additional_transforms}})) {
             $self->{wrapped_transforms}{$transform} =
-                $self->_wrap_transform( 
+                $self->_wrap_transform(
                     $options{additional_transforms}{$transform} );
         }
     }
     lock_hashref( $self->{wrapped_transforms} );
-    
+
     return $self;
 }
 
@@ -69,14 +69,14 @@ sub _safe_compartment {
     my ($self) = @_;
     if ( !$self->{safe_compartment} ) {
         $self->{safe_compartment} = Safe->new();
-        *{$self->{safe_compartment}->varglob( 'property' )} = 
+        *{$self->{safe_compartment}->varglob( 'property' )} =
             $self->_wrap_transform( \&_property );
         foreach my $transform ( keys( %{$self->{wrapped_transforms}} ) ) {
-            *{$self->{safe_compartment}->varglob( $transform )} = 
+            *{$self->{safe_compartment}->varglob( $transform )} =
                 $self->{wrapped_transforms}{$transform};
         }
     }
-    
+
     return $self->{safe_compartment};
 }
 
@@ -133,4 +133,59 @@ sub _wrap_transform {
 
 __END__
 
-=for Pod::Coverage new transform
+=head1 SYNOPSIS
+  use Template::Resolver;
+
+  $java_properties_file = <<'EOF';
+
+    # Simple value that will error if not present
+    server_port = ${TEMPLATE{app.port}}
+
+    # Simple value with a default (no error if not present)
+    context_path = ${TEMPLATE{app.context_path:/myapp}}
+
+    # Get an env var
+    http_proxy = ${TEMPLATE_env{HTTP_PROXY}}
+
+    # Translate a cygwin path with error if not present
+    module_jar = ${TEMPLATE_os{app.module_addon1}}
+
+    # Translate a cygwin path with default
+    module_jar = ${TEMPLATE_os{app.module_addon2:/var/local/lib/mymodule.jar}}
+
+    # Escape some xml (with blank default)
+    html_header = ${TEMPLATE_xml_escape{app.header:}}
+
+    # Run some perl
+    https_enabled = ${TEMPLATE_perl{ property(app.use_https) ? 'true' : 'false'}}
+    https_proxy = ${TEMPLATE_perl{ sprintf( 'https://%s:%d/', $ENV{HTTPS_PROXY_HOST}, $ENV{HTTPS_PROXY_PORT} )}}
+
+    # Custom stuff
+    db_user = ${TEMPLATE_customfetch{ 'dbuser' }}
+
+  EOF
+
+  my $entity = {
+      app => {
+          port => 80,
+          module_addon1 => '/var/local/lib/mymodule.jar',
+          use_https => 0,
+      }
+  };
+
+  my $resolver = Template::Resolver->new( $entity, additional_transforms => {
+      customfetch => sub {
+          #Do something here
+          return 'mydbuser';
+      }
+  });
+  my $transformed_result = $resolver->resolve( content => $java_properties_file );
+
+
+  my $overlay_me = Template::Overlay->new(
+      '/path/to/base/folder',
+      Template->Resolver->new($entity),
+      key => 'REPLACEME');
+  $overlay_me->overlay(
+      ['/path/to/template/base','/path/to/another/template/base'],
+      to => '/path/to/processed');
